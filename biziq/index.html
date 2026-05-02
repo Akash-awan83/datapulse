@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataPulse — AI Business Intelligence Platform</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOP NAVIGATION
+══════════════════════════════════════════════════════════ -->
+<header class="topbar" id="topbar">
+  <div class="topbar-left">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="8" fill="url(#lg)"/>
+          <path d="M7 18L11 10L15 15L18 12L21 18" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="11" cy="10" r="1.5" fill="white"/>
+          <circle cx="15" cy="15" r="1.5" fill="white"/>
+          <circle cx="18" cy="12" r="1.5" fill="white"/>
+          <circle cx="21" cy="18" r="1.5" fill="white"/>
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="28" y2="28">
+              <stop offset="0%" stop-color="#6366F1"/>
+              <stop offset="100%" stop-color="#8B5CF6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="logo-text">Data<span class="logo-accent">Pulse</span></span>
+    </div>
+    <div class="topbar-pills">
+      <span class="pill pill-ds">Data Science</span>
+      <span class="pill pill-ai">ML / AI</span>
+    </div>
+  </div>
+  <nav class="topbar-nav">
+    <button class="nav-btn active" data-page="analyze">Analyze</button>
+    <button class="nav-btn" data-page="predictions">Predictions</button>
+    <button class="nav-btn" data-page="segments">Segments</button>
+    <button class="nav-btn" data-page="strategy">Strategy</button>
+    <button class="nav-btn" data-page="about">About</button>
+  </nav>
+  <div class="topbar-right">
+    <button class="btn-outline" id="load-demo-btn" onclick="loadDemoData()">Load Demo</button>
+    <div class="status-dot" id="status-dot" title="Ready"></div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: ANALYZE
+══════════════════════════════════════════════════════════ -->
+<main id="page-analyze" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-dot"></span>
+        Business Intelligence Platform
+      </div>
+      <h1 class="hero-title">Turn Raw Data Into<br/><span class="gradient-text">Actionable Intelligence</span></h1>
+      <p class="hero-sub">Upload your CSV or enter metrics manually. Get ML-powered predictions, customer segmentation, and strategic insights — all computed client-side, zero data sent to servers.</p>
+      <div class="hero-tags">
+        <span class="htag">📊 Predictive Analytics</span>
+        <span class="htag">👥 RFM Segmentation</span>
+        <span class="htag">🤖 ML Forecasting</span>
+        <span class="htag">💡 AI Strategy</span>
+        <span class="htag">🔒 100% Private</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- UPLOAD + FORM SECTION -->
+  <section class="section-wrap">
+    <div class="two-col-layout">
+
+      <!-- LEFT: UPLOAD -->
+      <div class="panel upload-panel" id="drop-zone">
+        <div class="panel-header">
+          <h2 class="panel-title">Upload Dataset</h2>
+          <span class="panel-tag">CSV / Excel</span>
+        </div>
+        <div class="drop-area" id="drop-area" onclick="document.getElementById('fileInput').click()">
+          <div class="drop-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="12" fill="rgba(99,102,241,0.1)"/>
+              <path d="M24 16V32M16 24H32" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="drop-title">Drop CSV file here</div>
+          <div class="drop-sub">or click to browse — supports sales, revenue, customer data</div>
+          <div class="drop-formats">
+            <span>.csv</span><span>.txt</span><span>.tsv</span>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept=".csv,.txt,.tsv" style="display:none" onchange="handleFileUpload(event)"/>
+
+        <div class="csv-format-hint">
+          <div class="hint-title">Expected CSV Columns (any subset works):</div>
+          <div class="hint-cols">
+            <code>date</code><code>revenue</code><code>customers</code><code>orders</code>
+            <code>aov</code><code>product</code><code>region</code><code>channel</code>
+          </div>
+        </div>
+
+        <div class="file-loaded hidden" id="file-loaded">
+          <div class="file-icon">✅</div>
+          <div class="file-info">
+            <div class="file-name" id="file-name">—</div>
+            <div class="file-rows" id="file-rows">—</div>
+          </div>
+          <button class="btn-remove" onclick="clearFile()">✕</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: MANUAL FORM -->
+      <div class="panel form-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Business Metrics</h2>
+          <span class="panel-tag">Manual Entry</span>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Business Name</label>
+            <input type="text" id="f-name" placeholder="e.g. Acme Corp" />
+          </div>
+          <div class="field">
+            <label>Industry</label>
+            <select id="f-industry">
+              <option value="">Select Industry</option>
+              <option value="retail">Retail / E-Commerce</option>
+              <option value="saas">SaaS / Software</option>
+              <option value="food">Food & Beverage</option>
+              <option value="services">Professional Services</option>
+              <option value="manufacturing">Manufacturing</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="education">Education</option>
+              <option value="logistics">Logistics / Supply Chain</option>
+              <option value="finance">Finance / Fintech</option>
+              <option value="real_estate">Real Estate</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Business Stage</label>
+            <select id="f-stage">
+              <option value="startup">Startup (0–2 yrs)</option>
+              <option value="growth" selected>Growth (2–5 yrs)</option>
+              <option value="scale">Scaling (5–10 yrs)</option>
+              <option value="mature">Mature (10+ yrs)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Monthly Revenue (₹)</label>
+            <input type="number" id="f-revenue" placeholder="500000" />
+          </div>
+          <div class="field">
+            <label>Monthly Customers</label>
+            <input type="number" id="f-customers" placeholder="250" />
+          </div>
+          <div class="field">
+            <label>Avg Order Value (₹)</label>
+            <input type="number" id="f-aov" placeholder="2000" />
+          </div>
+          <div class="field">
+            <label>Retention Rate (%)</label>
+            <input type="number" id="f-retention" placeholder="35" min="0" max="100" />
+          </div>
+          <div class="field">
+            <label>Monthly Ad Spend (₹)</label>
+            <input type="number" id="f-adspend" placeholder="50000" />
+          </div>
+          <div class="field">
+            <label>Top Product / Service</label>
+            <input type="text" id="f-product" placeholder="e.g. Premium Plan" />
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Revenue History — last 6 months, comma-separated (₹)</label>
+          <input type="text" id="f-revhistory" placeholder="420000, 450000, 480000, 510000, 490000, 530000" />
+        </div>
+        <div class="field" style="margin-top:12px;">
+          <label>Main Business Challenge (optional)</label>
+          <textarea id="f-challenge" placeholder="e.g. High customer churn, slow growth, low margins..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYZE BUTTON -->
+    <button class="mega-btn" id="analyze-btn" onclick="runAnalysis()">
+      <span class="mega-btn-icon">⚡</span>
+      <span class="mega-btn-text">Run Full Data Science Analysis</span>
+      <span class="mega-btn-sub">Predictions · Segmentation · Strategy · Risk Analysis</span>
+    </button>
+  </section>
+
+  <!-- RESULTS SECTION (hidden until analysis) -->
+  <section class="results-section hidden" id="results-section">
+
+    <!-- KPI RIBBON -->
+    <div class="section-wrap">
+      <div class="kpi-ribbon" id="kpi-ribbon"></div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="section-wrap">
+      <div class="charts-3col">
+        <div class="chart-panel" id="chart-revenue">
+          <div class="cp-header">
+            <div>
+              <div class="cp-title">Revenue Trend</div>
+              <div class="cp-sub">Historical data with ML trendline</div>
+            </div>
+            <span class="cp-badge">Time Series</span>
+          </div>
+          <div class="chart-wrap h220"><canvas id="revChart" role="img" aria-label="Revenue trend chart with ML trendline"></canvas></div>
+        </div>
+        <div class="chart-panel" id="chart-seg">
+          <div class="cp-header">
+            <div>
+              <div class="cp-title">Customer Segments</div>
+              <div class="cp-sub">RFM-based distribution</div>
+            </div>
+            <span class="cp-badge">Clustering</span>
+          </div>
+          <div class="chart-wrap h220"><canvas id="segDonut" role="img" aria-label="Customer segmentation donut chart"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <div class="cp-header">
+            <div>
+              <div class="cp-title">Revenue by Segment</div>
+              <div class="cp-sub">Value contribution per tier</div>
+            </div>
+            <span class="cp-badge">Attribution</span>
+          </div>
+          <div class="chart-wrap h220"><canvas id="segRevBar" role="img" aria-label="Revenue by customer segment bar chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSIGHTS STREAM -->
+    <div class="section-wrap">
+      <div class="insight-stream-panel" id="insight-stream-panel">
+        <div class="isp-header">
+          <div class="isp-left">
+            <div class="ai-pulse"></div>
+            <div>
+              <div class="isp-title">AI Intelligence Report</div>
+              <div class="isp-sub">Generated by large language model analysis</div>
+            </div>
+          </div>
+          <div class="isp-controls">
+            <button class="cp-btn" onclick="copyInsights()">📋 Copy Report</button>
+          </div>
+        </div>
+        <div class="insight-content" id="insight-content">
+          <div class="insight-placeholder">Analysis results will appear here...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEGMENTATION TABLE -->
+    <div class="section-wrap">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Customer Segmentation Matrix</h2>
+          <span class="panel-tag">RFM Model</span>
+        </div>
+        <div class="table-wrap">
+          <table class="ds-table" id="seg-table">
+            <thead>
+              <tr>
+                <th>Segment</th>
+                <th>RFM Score</th>
+                <th>Customer Count</th>
+                <th>% of Base</th>
+                <th>Avg Value</th>
+                <th>Retention</th>
+                <th>LTV Estimate</th>
+                <th>Priority</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="seg-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <div class="section-wrap">
+      <div class="recs-panel" id="recs-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Strategic Recommendations</h2>
+          <span class="panel-tag">Ranked by ROI</span>
+        </div>
+        <div class="recs-grid" id="recs-grid"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- LOADING -->
+  <div class="loading-overlay hidden" id="loading-overlay">
+    <div class="loading-card">
+      <div class="loading-animation">
+        <div class="la-ring"></div>
+        <div class="la-ring la-ring2"></div>
+        <div class="la-dot"></div>
+      </div>
+      <div class="loading-title">Running Data Science Pipeline</div>
+      <div class="loading-step" id="loading-step">Initializing models...</div>
+      <div class="loading-progress">
+        <div class="loading-bar" id="loading-bar"></div>
+      </div>
+      <div class="loading-steps-list" id="loading-steps-list"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: PREDICTIONS
+══════════════════════════════════════════════════════════ -->
+<main id="page-predictions" class="page hidden">
+  <section class="page-hero">
+    <h1 class="page-hero-title">Sales Predictions</h1>
+    <p class="page-hero-sub">ML-powered 12-month revenue forecasting using linear regression, exponential smoothing, and seasonal decomposition.</p>
+  </section>
+  <section class="section-wrap">
+    <div id="pred-empty" class="empty-state">
+      <div class="es-icon">🔮</div>
+      <div class="es-title">No predictions yet</div>
+      <div class="es-sub">Run an analysis from the Analyze tab first.</div>
+      <button class="btn-primary" onclick="switchPage('analyze')">Go to Analyze →</button>
+    </div>
+    <div id="pred-content" class="hidden">
+      <div class="kpi-ribbon" id="pred-kpi"></div>
+      <div class="charts-2col" style="margin-top:20px;">
+        <div class="chart-panel chart-panel-wide">
+          <div class="cp-header">
+            <div>
+              <div class="cp-title">12-Month Revenue Forecast</div>
+              <div class="cp-sub">Linear regression + seasonal adjustment + confidence interval</div>
+            </div>
+            <span class="cp-badge">Forecasting</span>
+          </div>
+          <div class="chart-wrap h300"><canvas id="forecastChart" role="img" aria-label="12 month revenue forecast with confidence bands"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <div class="cp-header">
+            <div>
+              <div class="cp-title">Growth Rate Decomposition</div>
+              <div class="cp-sub">Trend vs seasonality vs noise</div>
+            </div>
+            <span class="cp-badge">Decomposition</span>
+          </div>
+          <div class="chart-wrap h300"><canvas id="decompChart" role="img" aria-label="Revenue decomposition chart"></canvas></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:20px;">
+        <div class="panel-header"><h2 class="panel-title">Forecast Breakdown</h2><span class="panel-tag">Monthly Detail</span></div>
+        <div class="table-wrap">
+          <table class="ds-table" id="forecast-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Forecast (₹)</th>
+                <th>Conservative (₹)</th>
+                <th>Optimistic (₹)</th>
+                <th>MoM Growth</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="forecast-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="insight-stream-panel" style="margin-top:20px;">
+        <div class="isp-header">
+          <div class="isp-left"><div class="ai-pulse"></div><div class="isp-title">Prediction Insights</div></div>
+        </div>
+        <div class="insight-content" id="pred-insight-content"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: SEGMENTS
+══════════════════════════════════════════════════════════ -->
+<main id="page-segments" class="page hidden">
+  <section class="page-hero">
+    <h1 class="page-hero-title">Customer Segmentation</h1>
+    <p class="page-hero-sub">RFM (Recency, Frequency, Monetary) analysis using K-means clustering principles to identify high-value customer cohorts.</p>
+  </section>
+  <section class="section-wrap">
+    <div id="seg-empty" class="empty-state">
+      <div class="es-icon">👥</div>
+      <div class="es-title">No segments yet</div>
+      <div class="es-sub">Run an analysis from the Analyze tab first.</div>
+      <button class="btn-primary" onclick="switchPage('analyze')">Go to Analyze →</button>
+    </div>
+    <div id="seg-content" class="hidden">
+      <div class="charts-3col">
+        <div class="chart-panel">
+          <div class="cp-header"><div><div class="cp-title">Segment Distribution</div><div class="cp-sub">Customer count per cohort</div></div><span class="cp-badge">K-Means</span></div>
+          <div class="chart-wrap h240"><canvas id="segPieChart" role="img" aria-label="Segment distribution pie chart"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <div class="cp-header"><div><div class="cp-title">Revenue Attribution</div><div class="cp-sub">% revenue per segment</div></div><span class="cp-badge">Attribution</span></div>
+          <div class="chart-wrap h240"><canvas id="segRevPie" role="img" aria-label="Revenue attribution by segment"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <div class="cp-header"><div><div class="cp-title">LTV vs. Acquisition Cost</div><div class="cp-sub">Value efficiency by segment</div></div><span class="cp-badge">LTV:CAC</span></div>
+          <div class="chart-wrap h240"><canvas id="ltvCacChart" role="img" aria-label="LTV vs CAC scatter chart by segment"></canvas></div>
+        </div>
+      </div>
+      <div class="seg-cards-grid" id="seg-cards-grid" style="margin-top:20px;"></div>
+      <div class="panel" style="margin-top:20px;">
+        <div class="panel-header"><h2 class="panel-title">RFM Score Matrix</h2><span class="panel-tag">Scoring Model</span></div>
+        <div class="table-wrap">
+          <table class="ds-table" id="rfm-table">
+            <thead>
+              <tr>
+                <th>Segment</th>
+                <th>R Score</th>
+                <th>F Score</th>
+                <th>M Score</th>
+                <th>Combined</th>
+                <th>Churn Risk</th>
+                <th>Upsell Potential</th>
+                <th>Recommended Channel</th>
+              </tr>
+            </thead>
+            <tbody id="rfm-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: STRATEGY
+══════════════════════════════════════════════════════════ -->
+<main id="page-strategy" class="page hidden">
+  <section class="page-hero">
+    <h1 class="page-hero-title">Strategic Recommendations</h1>
+    <p class="page-hero-sub">Data-driven growth strategies ranked by estimated ROI, implementation complexity, and time-to-impact.</p>
+  </section>
+  <section class="section-wrap">
+    <div id="strat-empty" class="empty-state">
+      <div class="es-icon">💡</div>
+      <div class="es-title">No strategy yet</div>
+      <div class="es-sub">Run an analysis from the Analyze tab first.</div>
+      <button class="btn-primary" onclick="switchPage('analyze')">Go to Analyze →</button>
+    </div>
+    <div id="strat-content" class="hidden">
+      <div class="charts-2col">
+        <div class="chart-panel">
+          <div class="cp-header"><div><div class="cp-title">ROI Impact Matrix</div><div class="cp-sub">Effort vs expected return</div></div><span class="cp-badge">Prioritization</span></div>
+          <div class="chart-wrap h280"><canvas id="roiMatrix" role="img" aria-label="ROI impact matrix bubble chart"></canvas></div>
+        </div>
+        <div class="chart-panel">
+          <div class="cp-header"><div><div class="cp-title">Revenue Levers</div><div class="cp-sub">Potential revenue uplift per action</div></div><span class="cp-badge">Revenue Ops</span></div>
+          <div class="chart-wrap h280"><canvas id="revLevers" role="img" aria-label="Revenue levers horizontal bar chart"></canvas></div>
+        </div>
+      </div>
+      <div class="strat-recs-full" id="strat-recs-full" style="margin-top:20px;"></div>
+      <div class="risk-panel" id="risk-panel" style="margin-top:20px;"></div>
+    </div>
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: ABOUT
+══════════════════════════════════════════════════════════ -->
+<main id="page-about" class="page hidden">
+  <section class="page-hero">
+    <h1 class="page-hero-title">About This Project</h1>
+    <p class="page-hero-sub">A portfolio-grade Data Science application demonstrating end-to-end business intelligence pipeline.</p>
+  </section>
+  <section class="section-wrap">
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-icon">📊</div>
+        <div class="about-title">Data Science Methods</div>
+        <ul class="about-list">
+          <li>Linear Regression (OLS) for trend forecasting</li>
+          <li>Exponential Smoothing for time series</li>
+          <li>RFM Segmentation (Recency · Frequency · Monetary)</li>
+          <li>K-Means Clustering principles</li>
+          <li>Statistical confidence intervals (±1.96σ)</li>
+          <li>Seasonal decomposition (additive model)</li>
+          <li>LTV:CAC ratio analysis</li>
+          <li>Cohort retention modelling</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🛠️</div>
+        <div class="about-title">Technology Stack</div>
+        <ul class="about-list">
+          <li>Vanilla JavaScript — zero framework dependency</li>
+          <li>Chart.js 4.4 — advanced data visualization</li>
+          <li>PapaParse 5.4 — CSV parsing engine</li>
+          <li>CSS Custom Properties — design system</li>
+          <li>Web Fonts — Space Grotesk + JetBrains Mono</li>
+          <li>100% client-side — no backend, no data storage</li>
+          <li>Responsive design — mobile to 4K</li>
+          <li>WCAG 2.1 AA accessible</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🔒</div>
+        <div class="about-title">Privacy & Security</div>
+        <ul class="about-list">
+          <li>Zero server-side processing</li>
+          <li>No data ever leaves your browser</li>
+          <li>No cookies, no analytics, no tracking</li>
+          <li>No API keys required</li>
+          <li>Works fully offline after load</li>
+          <li>Open source — inspect all source code</li>
+          <li>CSP compatible</li>
+          <li>No third-party data sharing</li>
+        </ul>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🎓</div>
+        <div class="about-title">Portfolio Highlights</div>
+        <ul class="about-list">
+          <li>End-to-end DS pipeline (ingest → model → visualize)</li>
+          <li>Business domain knowledge (RFM, LTV, ROAS)</li>
+          <li>Statistical rigor with confidence intervals</li>
+          <li>Production-ready UX design</li>
+          <li>CSV ingestion with auto column detection</li>
+          <li>Multi-model forecasting with ensemble logic</li>
+          <li>Real-world applicable recommendations</li>
+          <li>Clean, maintainable code architecture</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="model-explainers">
+      <div class="panel-header" style="margin-bottom:16px;"><h2 class="panel-title">Models & Algorithms Explained</h2></div>
+      <div class="explainer-grid">
+        <div class="explainer-card">
+          <div class="exp-label">Linear Regression (OLS)</div>
+          <div class="exp-formula">ŷ = β₀ + β₁x</div>
+          <div class="exp-desc">Used to model revenue trend. Ordinary Least Squares minimizes the sum of squared residuals to find the best-fit line through historical revenue data.</div>
+        </div>
+        <div class="explainer-card">
+          <div class="exp-label">Exponential Smoothing</div>
+          <div class="exp-formula">S_t = αy_t + (1−α)S_{t−1}</div>
+          <div class="exp-desc">Gives more weight to recent observations (α=0.3). Used as a secondary model in the forecast ensemble to smooth out noise.</div>
+        </div>
+        <div class="explainer-card">
+          <div class="exp-label">RFM Scoring</div>
+          <div class="exp-formula">Score = R×0.3 + F×0.35 + M×0.35</div>
+          <div class="exp-desc">Each customer is scored on Recency (last purchase), Frequency (order count), and Monetary (total spend). Weighted sum determines segment tier.</div>
+        </div>
+        <div class="explainer-card">
+          <div class="exp-label">Customer LTV</div>
+          <div class="exp-formula">LTV = AOV × F × (1/(1−r))</div>
+          <div class="exp-desc">Lifetime Value calculated from Average Order Value, purchase frequency, and retention rate (r). Assumes geometric series for future purchase probability.</div>
+        </div>
+        <div class="explainer-card">
+          <div class="exp-label">Confidence Interval</div>
+          <div class="exp-formula">CI = ŷ ± 1.96 × σ/√n</div>
+          <div class="exp-desc">95% confidence bands around forecast. Standard error estimated from residuals of the regression fit on historical data.</div>
+        </div>
+        <div class="explainer-card">
+          <div class="exp-label">ROAS & CAC</div>
+          <div class="exp-formula">ROAS = Revenue / AdSpend<br/>CAC = AdSpend / NewCustomers</div>
+          <div class="exp-desc">Return on Ad Spend and Customer Acquisition Cost are core marketing efficiency metrics used to evaluate and optimize paid acquisition channels.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✅</div>
+  <div id="toast-msg">Done!</div>
+</div>
+
+<script src="js/analytics.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

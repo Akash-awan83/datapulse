@@ -1,0 +1,7 @@
+date,revenue,customers,aov,retention,adspend,channel,region
+2024-01,610000,260,2346,32,72000,Paid Search,North
+2024-02,650000,278,2338,33,76000,Paid Social,North
+2024-03,720000,305,2360,34,82000,Paid Search,South
+2024-04,780000,330,2363,36,88000,Organic,West
+2024-05,810000,342,2368,37,91000,Paid Social,East
+2024-06,850000,355,2394,38,95000,Referral,North
